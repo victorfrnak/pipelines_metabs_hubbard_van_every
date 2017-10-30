@@ -1,0 +1,415 @@
+
+
+rm(list = setdiff(ls(), lsf.str()))
+
+totalMetab = read.table("/Users/carlschmidt/Downloads/Transpose_of_Metabolon_rawData_III_excel_csv.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+rownames(totalMetab) = totalMetab$Label
+totalMetab$Label = NULL
+
+colnames(subsetOrganOfInterest) = colnames(totalMetab)
+toModelII = totalMetab
+ 
+
+###Read in the metabolite data
+bigTable1 = read.table("/Users/carlschmidt/Downloads/All799_Allen_tsv.txt", sep = "\t", header = TRUE)
+
+##to be made into set A complement
+setAComp = bigTable1 
+
+##set to be a data frame
+setA = as.data.frame(bigTable1)
+
+###Go through the list of the liver libraries
+subsetLibsOfInterest <- c(1321,1322,1323,1324,1325,1326,1327,1328)
+subsetLibsOfInterest2 <- c(1330,1331,1332,1333,1334,1335,1336,1337)
+
+
+###temporarily join them both here !!!
+#we will subset the large table just these libraries
+subsetLibsOfInterest = c(subsetLibsOfInterest, subsetLibsOfInterest2)
+
+###Subset, by being in here !!!
+###Table with the organ of interest
+subsetOrganOfInterest <- matrix()
+subsetOrganOfInterest = as.data.frame(subsetOrganOfInterest)
+
+##Make sure to add the names columm
+subsetOrganOfInterest$names = bigTable1$Label
+
+###Declare the subtable as a frame in order to manipulate more easily
+subsetOrganOfInterest = matrix(, nrow = length(bigTable1$Label), ncol = length(subsetLibsOfInterest))
+subsetOrganOfInterestNames = as.vector(subsetLibsOfInterest)
+colnames(subsetOrganOfInterest) = subsetOrganOfInterestNames
+subsetOrganOfInterest = as.data.frame(subsetOrganOfInterest)
+
+
+subsetOrganOfInterest$names = bigTable1$Label
+
+
+###Loop through the libs of interest
+###adding to the table
+
+###Join the names into a vector that will have all of the info
+###for the names
+namesVec = vector()
+for (i in 1:length(subsetLibsOfInterest))
+{
+  ###for the grep query
+  s1 <- "^X"
+  s2 <- subsetLibsOfInterest[i]
+  
+  toGrep = 0
+  toGrep = paste(s1, s2, sep = "")
+  print(grep(toGrep,names(bigTable1)))
+  
+  ##we are going to get the column of interest 
+  ##and then we are going to subset and bind this
+  ##to the table of interest
+  toAddToSubset <- bigTable1[,grep(toGrep,names(bigTable1))]
+  
+  ##This is the table containing all of the libraries representing set "A"
+  subsetOrganOfInterest[, which( colnames(subsetOrganOfInterest)== s2)] = toAddToSubset
+  
+  #subsetOrganOfInterest = cbind(subsetOrganOfInterest, toAddToSubset)
+  ###Put back the column with the names
+  subsetOrganOfInterest$names = bigTable1$Label 
+  
+  ###Also, remove from set A complement
+  ###The 'grep' command just gives us the location
+  ###Note well
+  
+  setAComp = setAComp[,-grep(toGrep,names(bigTable1))]  
+}  
+
+
+
+
+#theVecOfTheCompoundsSubset = c("S_adenosylmethionine__SAM_","S_adenosylhomocysteine__SAH_","sphinganine","sphingomyelin__d18_1_14_0__d16_1_16_0_","cysteine","linoleoyl_ethanolamide","oleoyl_ethanolamide","palmitoyl_ethanolamide","sphingomyelin__d18_1_15_0__d16_1_17_0_","sphingomyelin__d18_1_20_0__d16_1_22_0_","sphingomyelin__d18_1_21_0__d17_1_22_0__d16_1_23_0_","sphingomyelin__d18_1_22_1__d18_2_22_0__d16_1_24_1_","sphingomyelin__d18_1_24_1__d18_2_24_0_","sphingomyelin__d18_2_24_1__d18_1_24_2_","sphingosine","stearate__18_0_","stearidonate__18_4n3_","stearoyl_ethanolamide","stearoyl_sphingomyelin__d18_1_18_0_","glutathione__oxidized__GSSG_","taurine","stearoyl_ethanolamide","hypotaurine","cysteinylglycine","1_arachidonoyl_GPC__20_4n6_","1_arachidonoyl_GPE__20_4n6_","1_arachidonoyl_GPI__20_4_","1_arachidonylglycerol__20_4_","1_dihomo_linolenylglycerol__20_3_","1_linoleoyl_2_arachidonoyl_GPC__18_2_20_4n6_","1_linoleoyl_2_arachidonoyl_GPE__18_2_20_4_","1_linoleoyl_2_linolenoyl_GPC__18_2_18_3_")
+
+totalMetab = rbind(totalMetab,subsetOrganOfInterest[rownames(subsetOrganOfInterest) == "SCD",])
+totalMetab = rbind(totalMetab, subsetOrganOfInterest[rownames(subsetOrganOfInterest) == "FAAH",])
+totalMetab = rbind(totalMetab, subsetOrganOfInterest[rownames(subsetOrganOfInterest) == "PEMT",])
+totalMetab = rbind(totalMetab, subsetOrganOfInterest[rownames(subsetOrganOfInterest) == "ETNK1",])
+totalMetab = rbind(totalMetab, subsetOrganOfInterest[rownames(subsetOrganOfInterest) == "PLD1",])
+#theSorted <- c("PLD1","PEMT","FAAH","SCD","ETNK1","oleoyl_ethanolamide","S_adenosylhomocysteine__SAH_","cysteine_s_sulfate","cysteine_sulfinic_acid","cysteine_glutathione_disulfide","S_carboxymethyl_L_cysteine","S_adenosylhomocysteine__SAH_","gamma_glutamylcysteine","S_adenosylmethionine__SAM_","S_carboxymethyl_L_cysteine","taurine","cysteine_s_sulfate","cysteine_sulfinic_acid","cysteinylglycine","linoleoyl_ethanolamide","oleoyl_ethanolamide","palmitoyl_ethanolamide","palmitate__16_0_","cysteine_glutathione_disulfide","hypotaurine","N_acetyltaurine", "16_hydroxypalmitate","N_oleoyltaurine","N_palmitoyltaurine","N_stearoyltaurine","cysteine_glutathione_disulfide","glutathione__oxidized__GSSG_","linoleate__18_2n6_","palmitoleate__16_1n7_","glutathione__reduced__GSH_","15_methylpalmitate","S_methylglutathione","stearate__18_0_","stearidonate__18_4n3_","stearoyl_ethanolamide","stearoyl_sphingomyelin__d18_1_18_0_","stearoylcarnitine","1_arachidonoyl_GPE__20_4n6_","1_arachidonylglycerol__20_4_","1_dihomo_linolenylglycerol__20_3_","1_linoleoyl_2_arachidonoyl_GPC__18_2_20_4n6_","betaine","choline")   
+
+
+theSorted <- c("gamma_glutamylcysteine","cysteine_s_sulfate","cysteine_sulfinic_acid","cysteinylglycine","oleoyl_ethanolamide","cysteine_glutathione_disulfide","hypotaurine","glutathione__oxidized__GSSG_","glutathione__reduced__GSH_","stearoyl_ethanolamide")   
+
+
+
+#theSorted = unique(c(theSorted,theVecOfTheCompoundsSubset))
+toModelII = totalMetab
+
+#theSorted = rownames(totalMetab)
+  
+theCompleteTable <- data.frame("A" = character(1), "BDividedByC" = numeric(1), "CorrelationBWithCHeat" = numeric(1), "CorAWithBHeat" = numeric(1), "CorAWithCHeat" = numeric(1), "CorBWithCControl" = numeric(1), "CorAWithBControl" = numeric(1), "CorAWithCControl" = numeric(1), "Cor_A_BdivC_Heat" = numeric(1), "Cor_A_BdivC_Control" = numeric(1), stringsAsFactors=FALSE)
+
+   
+   
+    #choose A
+    for(i in 1:length(theSorted))
+    {
+    
+        compoundA = theSorted[i]
+        
+        #print(compoundA)
+        #print("is compound A")
+        #print(i)
+        #print("is i !!!!!")
+        
+        
+        #get vec A control
+        vecAControl = toModelII[rownames(toModelII) == compoundA,][1:8]
+        
+        
+        #get vec A heat stress
+        vecAHS = toModelII[rownames(toModelII) == compoundA,][9:16]
+       
+        #print(vecAHS)
+        #print("vecAHS")
+        
+        #print(vecAControl)
+        #print("vecAControl")
+       
+        #choose B
+        for(j in 1:length(theSorted))
+        {   
+
+            #print(j)
+            #print(" is j !!!!!!")
+            compoundB = theSorted[j]
+            
+            #print(compoundB)
+            #print("is compound B")
+            
+            #get vec B control
+            
+            vecBControl = toModelII[rownames(toModelII) == compoundB,][1:8]
+            
+            #get vec B heat stress
+            vecBHS = toModelII[rownames(toModelII) == compoundB,][9:16]
+           
+            #choose C
+            for(k in 1:length(theSorted))
+            {
+            
+                #print(k)
+                #print("is k !!!!!!")
+                compoundC = theSorted[k]
+                
+                #print(compoundC)
+                #print("is compound C")
+    
+                #get vec C control
+                vecCControl = toModelII[rownames(toModelII) == compoundC,][1:8]
+               
+                #get vec C heat stress
+                vecCHS = toModelII[rownames(toModelII) == compoundC,][9:16]
+                
+                #print(vecCControl)
+                #print(" is vecCControl")
+                
+                #print(vecCHS)
+                #print("is vecCHS")
+                
+                
+                #cor exp
+                
+                #print(vecAHS)
+                #print(vecBHS)
+                #print(vecCHS)
+                
+                #print("the HS one !!!")
+                
+                #print(vecAControl)
+                #print(vecBControl)
+                #print(vecCControl)
+                #print("are the control vecs !!!")
+                
+                #print(compoundA)
+                #print("is compound A !!!")
+                
+                #print(compoundB)
+                #print("is compound B !!!")
+                
+                #print(compoundC)
+                #print("compound C !!!")
+                
+                theExpCor = cor((as.numeric(vecAHS) + .01), ((as.numeric(vecBHS) + .01) / (as.numeric(vecCHS) + .01)))
+                theControlCor = cor((as.numeric(vecAControl) + .01), ((as.numeric(vecBControl) + .01) / (as.numeric(vecCControl) + .01)))
+                
+                theExpCor[is.na(theExpCor)] = 0
+                theControlCor[is.na(theControlCor)] = 0
+                
+                #print(theExpCor)
+                #print("theExpCor")
+                
+                #print(theControlCor)
+                #print("theControlCor")
+                
+                
+                #print(abs(theExpCor - theControlCor))
+                #print("is the difference, note well !!!!")
+                
+                if(abs(theExpCor - theControlCor) > 1.2)
+                {
+                
+                
+                    ###comment this out, ju 23rd - note well
+                    print(compoundA)
+                    print(compoundB)
+                    print(compoundC)
+                    
+                    print(theExpCor)
+                    print("is theExpCor")
+                    
+                    print(theControlCor)
+                    print(" is theControlCor")
+                    
+                    
+                    print(cor((as.numeric(vecAHS) + .01), (as.numeric(vecBHS) + .01)))
+                    print(" is pairwise A with B")
+                    
+                    print(cor((as.numeric(vecAHS) + .01), (as.numeric(vecCHS) + .01)))
+                    print(" is pairwise A with C")
+                    
+                    print(cor((as.numeric(vecBHS) + .01), (as.numeric(vecCHS) + .01)))
+                    print(" is pairwise B with C  ")
+                    
+                    print("for HS")
+                    
+                    
+                    print(cor((as.numeric(vecAControl) + .01), (as.numeric(vecBControl) + .01)))
+                    print(" is pairwise A with B")
+                    
+                    print(cor((as.numeric(vecAControl) + .01), (as.numeric(vecCControl) + .01)))
+                    print(" is pairwise A with C")
+                    
+                    print(cor((as.numeric(vecBControl) + .01), (as.numeric(vecCControl) + .01)))
+                    print(" is pairwise B with C  ")
+                    
+                    print("for control")
+                    
+                    
+                    print("is the triplet !!!!")
+                    
+                    rowToWrite = nrow(theCompleteTable) + 1
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "A")] = compoundA
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "BDividedByC")] = paste(compoundB,compoundC, sep = "/")
+                    
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorrelationBWithCHeat")] = cor((as.numeric(vecBHS) + .01), (as.numeric(vecCHS) + .01))
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorAWithBHeat")] = cor((as.numeric(vecAHS) + .01), (as.numeric(vecBHS) + .01))
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorAWithCHeat")] = cor((as.numeric(vecAHS) + .01), (as.numeric(vecCHS) + .01))
+     
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorBWithCControl")] = cor((as.numeric(vecBControl) + .01), (as.numeric(vecCControl) + .01))
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorAWithBControl")] = cor((as.numeric(vecAControl) + .01), (as.numeric(vecBControl) + .01))
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "CorAWithCControl")] = cor((as.numeric(vecAControl) + .01), (as.numeric(vecCControl) + .01))
+
+    
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "Cor_A_BdivC_Heat")] = theExpCor
+                    theCompleteTable[rowToWrite, which(colnames(theCompleteTable) == "Cor_A_BdivC_Control")] = theControlCor
+    
+                    
+                }
+            
+            }
+            
+        }
+        
+        print("done one, here !!!!")
+        print("")
+        print(" ")
+        print(" ")
+    }
+    
+
+
+
+write.table(theCompleteTable, "oct29thShortInfoII.txt", sep = "\t")
+
+##here's the approach:
+#the code for the circuit, will need to be its own file
+#note well
+
+#search the array, if we have a match, drop it 
+
+
+###attempt to build the new paths
+
+
+theInitialToSearch = theCompleteTable$A
+theInitialToSearchRatio = theCompleteTable$BDividedByC
+
+
+#make the vec of nums
+theVecOfNums = vector()
+for(i in 1:length(theInitialToSearchRatio))
+{
+ theNum = unlist(strsplit(theCompleteTable[i,which(colnames(theCompleteTable) == "BDividedByC")], split ="/"))[1]
+ theVecOfNums = c(theVecOfNums, theNum)
+}
+
+#make the vec of denoms
+theVecOfDenoms = vector()
+for(i in 1:length(theInitialToSearchRatio))
+{
+ theDenom = unlist(strsplit(theCompleteTable[i,which(colnames(theCompleteTable) == "BDividedByC")], split ="/"))[2]
+ theVecOfDenoms = c(theVecOfDenoms, theDenom)
+}
+
+
+
+#theVecToWorkWith[-i]
+
+
+#the logic is going to be this
+
+#each triplet is of the form cor(A, (B/C))
+#we are going to see if we can start joining
+#(A1,(B1/C1)) and (A2,(B2/C2)) when
+#A2 equals B1 or C1, note well.
+
+
+sink("heidi_output_from_triplet_search.txt")
+
+##start searching for triplets, note well
+for (i in 1:length(theInitialToSearch))
+{
+ print(i)
+ print("is i ")
+ absCount = i
+ relativeCount = 0
+ 
+ #see if we can connect to a new triplet
+ #theCompound1 = theInitialToSearch[i]
+ 
+ Compound1 = unlist(strsplit(theCompleteTable[i,which(colnames(theCompleteTable) == "BDividedByC")], split ="/"))[1]
+ 
+ 
+ #store the list of connecting partners
+ theListOfConnectingTriplets = vector()
+
+  print(theInitialToSearch[i])
+  print("is A1")
+  print(theVecOfNums[i])
+  print("is B1")
+  print(theVecOfDenoms[i])
+  print("is C1")
+  print("for the starting triplet")
+
+ theToMatch = 0
+ myTheNumsThrough = 0
+ 
+ 
+ #try to join to another triplet, now
+ 
+ #connect B1 to A2
+
+ 
+ #match B1 in the A of other triplets
+ B1 =  unlist(strsplit(theCompleteTable[i,which(colnames(theCompleteTable) == "BDividedByC")], split ="/"))[1]
+ print(B1)
+ print("is B1")
+ 
+ 
+
+ while((B1 %in% theInitialToSearch) && (theToMatch < i))
+ {
+   #print("we have a match, now !! ")
+   
+   
+   theToMatch = min(which(theInitialToSearch == B1))
+   
+   
+  
+   
+   
+   #theCompound1 = theVecOfNums[theToMatch]
+  
+   #reset B1 to the 'A' of the next triplet of the form (cor(A, (B/C)))
+   B1 = theInitialToSearch[theToMatch]
+   B1 = unlist(strsplit(theCompleteTable[theToMatch,which(colnames(theCompleteTable) == "BDividedByC")], split ="/"))[1]
+    
+   print(B1) 
+   print("is the new B1")
+   theListOfConnectingTriplets = c(theListOfConnectingTriplets, B1)
+   
+   #print(theListOfConnectingTriplets)
+   #print("is a sample path")
+
+   myTheNumsThrough = myTheNumsThrough + 1
+  
+   print(theInitialToSearch[theToMatch])
+   print("is A2")
+   print("for the triplet")
+   print(theVecOfNums[theToMatch])
+   print("is B2")
+   print(theVecOfDenoms[theToMatch])
+   print("is C2")
+
+ 
+  } 
+}
+
+sink()
